@@ -48,7 +48,7 @@ public class GonzalezGarciaMiguelPrac2 {
         }
 
         monitor.bloquear();
-        System.out.println("############# CANCELANDO LOS ASCENSORES #############");
+        System.out.println("############# CANCELAREMOS LOS ASCENSORES #############");
         executor.shutdownNow();
         System.out.println("Finaliza el hilo principal");
 
