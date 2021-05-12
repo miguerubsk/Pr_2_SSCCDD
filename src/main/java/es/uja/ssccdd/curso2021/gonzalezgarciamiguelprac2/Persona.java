@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class Persona implements Runnable {
 
-    
+    //VARIABLES NECESARIAS
     private int plantaOrigen;
     private int plantaDestino;
     private int max_operaciones;
@@ -34,7 +34,7 @@ public class Persona implements Runnable {
     private Monitor mon;
     private int ID;
 
-    
+    //INICALIZACIÓN
     public Persona(Monitor m, int id) {
         ID = id;
         plantaOrigen = 0;
@@ -46,12 +46,12 @@ public class Persona implements Runnable {
         direccion = 1;
     }
 
-    
+    //NUMERO ALEATORIO DENTRO DE UN RANGO
     private int aleatorio(int a, int b) {
         return (int) Math.floor(Math.random() * (b - a + 1) + a);
     }
 
-    
+    //CALCULO DIRECCIÓN Y EVITAR QUE UNA PERSONA ELIJA DE PLANTA DESTINO LA MISMA EN LA QUE SE ENCUENTRA
     public int direccion() {
         while (plantaOrigen == plantaDestino) {
             plantaDestino = aleatorio(0, mon.NUM_PLANTAS - 1);
@@ -63,12 +63,12 @@ public class Persona implements Runnable {
         }
     }
 
-    
+    //SIMULACIÓN DE UN TIEMPO DE TRABAJO EN LA PLANTA
     private void trabajoEnPlanta() throws InterruptedException {
         TimeUnit.SECONDS.sleep(aleatorio(5, 15));
     }
 
-    
+    //CALCULOS PREVIOS
     private void inicio() {
         if (max_operaciones == operacion) {
             plantaDestino = mon.BAJO;
@@ -78,7 +78,7 @@ public class Persona implements Runnable {
         direccion = direccion();
     }
 
-    
+    //ESPERA PARA BAJARSE DEL ASCENSOR
     private void bajarme() throws InterruptedException {
         mon.bajarPersona(this);
     }
@@ -100,7 +100,7 @@ public class Persona implements Runnable {
         mon.fin();
     }
 
-    
+    //GETTERS Y SETTERS
     public void setPlantaOrigen(int plantaOrigen) {
         this.plantaOrigen = plantaOrigen;
     }
