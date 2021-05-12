@@ -28,26 +28,25 @@ import java.util.logging.Logger;
  */
 public class Monitor {
 
-    
+    //CONSTANTES
     public final int BAJO = 0;
     public final int NUM_PLANTAS = 4;
     public final int SUBIDA = 1;
     public final int BAJADA = 0;
 
-    
-    private Semaphore[][] controlSubida;
-    private ArrayList<Semaphore> controlBajada;
-    private ArrayList<Ascensor> listaA;
-    private ArrayList<Semaphore> bloqueoAscensorPlanta;
-    private int NUM_ASCENSORES;
-    private int NUM_PERSONAS;
-    private int NUM_OPERACIONES;
-    private int CAPACIDAD_ASCENSOR;
-    private int fin;
-    private Semaphore finS;
+    //VARIABLES NECESARIAS
+    private Semaphore[][] controlSubida; //MATRIZ SEMAFOROS SUBIDA DE PERSONAS (PERSONAS QUE SUBEN || PERSONAS QUE BAJAN)
+    private ArrayList<Semaphore> controlBajada;//LISTA DE SEMAFOROS (EQUIVALENTE A LISTA DE ASCENSORES) CONTROL DE BAJADA DE PERSONAS
+    private ArrayList<Ascensor> listaA;//LISTA DE ASCENSORES EN FUNCIONAMIENTO
+    private ArrayList<Semaphore> bloqueoAscensorPlanta;//SEMAFORO PARA EL CONTROL DE LA ESPERA DE SEMAFORO EN PLANTA
+    private int NUM_ASCENSORES;//NUMERO DE ASCENSORES
+    private int NUM_PERSONAS;//NUMERO DE PERSONAS
+    private int NUM_OPERACIONES;//NUMERO DE OPERACIONES MAXIMAS POR PERSONA
+    private int CAPACIDAD_ASCENSOR;//NUMERO DE PERSONAS MAXIMO POR ASCENSOR
+    private int fin;//NUMERO PERSONAS QUE ABANDONAN EL EDIFICIO
+    private Semaphore finS;//SEMAFORO PARA CONTROLAR LA FINALIZACIÓN DEL PROGRAMA
 
-    
-    public Monitor(int nPers, int nAscensores) {
+    public Monitor(int nPers, int nAscensores) {//INICIALIZACIÓN
         CAPACIDAD_ASCENSOR = 5;
         fin = 0;
         NUM_ASCENSORES = nAscensores;
@@ -71,24 +70,24 @@ public class Monitor {
         }
     }
 
-    public void addAscensor(Ascensor a) {
+    public void addAscensor(Ascensor a) {//AÑADIR ASCENSOR A LISTA
         listaA.set(a.getId(), a);
     }
 
-    public void esperarAscensor(Persona p) {
+    public void esperarAscensor(Persona p) {//CONTROL SUBIDA DE PERSONAS
         try {
-            controlSubida[p.getDireccion()][p.getPlantaOrigen()].acquire();         
-            subirPersonaAscensor(p);
+            controlSubida[p.getDireccion()][p.getPlantaOrigen()].acquire();//LA PERSONA ESPERA LA LLEGADA DEL ASCENSOR           
+            subirPersonaAscensor(p);//SUBIRSE AL ASCENSOR
         } catch (InterruptedException ex) {
             System.out.println("Fallo sección crítica de espera de una persona");
         }
     }
 
-    public void bajarPersona(Persona p) throws InterruptedException {
+    public void bajarPersona(Persona p) throws InterruptedException {//SEMAFORO PARA LA ESPERA DE UNA PERSONA PARA BAJARSE DEL ASCENSOR
         controlBajada.get(p.getPlantaDestino()).acquire();
     }
 
-    public void bajarPersonas(Ascensor a) {
+    public void bajarPersonas(Ascensor a) {//ELIMINAMOS LA PERSONA DEL ASCENSOR Y LIBERAMOS EL ASCENSOR DE BAJADA PERSONAS
         for (int i = 0; i < a.personas(); i++) {
             Persona pp = a.getPersona(i);
             if (pp.getPlantaDestino() == a.getPlanta()) {
@@ -101,8 +100,8 @@ public class Monitor {
         }
     }
 
-    
-    public synchronized void subirPersonaAscensor(Persona p) throws InterruptedException {
+    //EL SIGUIENTE METODO SE REALIZA EN EXCUSIÓN MUTUA PARA EVITAR PROBLEMAS DE CONCURRENCIA AL AGREGAR UNA NUEVA PERSONA AL ASCENSOR
+    public synchronized void subirPersonaAscensor(Persona p) throws InterruptedException {//SUBIR PERSONA A UN SOLO ASCENSOR GRACIAS SOBRE TODO A SU VARIABLE ASCENSOR(PERSONA) QUE ES MODIFICADA AL AÑADIRLO A LA LISTA
         for (int i = 0; i < listaA.size(); i++) {
             if ((listaA.get(i).getPlanta() == p.getPlantaOrigen()) && (listaA.get(i).getDireccion() == p.direccion())
                     && (listaA.get(i).personas() < CAPACIDAD_ASCENSOR) && p.getAscensor() == -1) {
@@ -114,7 +113,7 @@ public class Monitor {
         }
     }
 
-    
+    //COMPROBAREMOS LA CAPACIDAD DEL ASCENSOR Y LIBERAREMOS N VECES EL SEMAFORO DE SUBIDA
     public void entradaPersonas(int idasc) {
         Ascensor a = listaA.get(idasc);
         int acceso = CAPACIDAD_ASCENSOR - a.personas();
@@ -133,18 +132,18 @@ public class Monitor {
                 cargar = controlSubida[a.getDireccion()][a.getPlanta()].getQueueLength();
             }
             for (int i = 0; i < cargar; i++) {
-                controlSubida[a.getDireccion()][a.getPlanta()].release();
+                controlSubida[a.getDireccion()][a.getPlanta()].release();//LIBERAMOS LA SUBIDA DE PERSONAS AL ACENSOR
             }
         }
         bloqueoAscensorPlanta.get(a.getId()).release();
     }
 
-    
+    //BLOQUEO SEMAFORO PARA ESPERAR LA BAJADA Y POSTERIOR SUBIDA DE PERSONAS
     public void esperaPlanta(Ascensor a) throws InterruptedException {
         bloqueoAscensorPlanta.get(a.getId()).acquire();
     }
 
-
+//CONTADOR DE PERSONAS QUE DESEAN BAJARSE EN UNA PLANTA
     public int personasABajar(Ascensor a) {
         int cont = 0;
         for (int i = 0; i < a.personas(); i++) {
@@ -155,7 +154,7 @@ public class Monitor {
         return cont;
     }
 
-    
+    //ESPERA FINALIZACIÓN
     public void bloquear() {
         try {
             finS.acquire();
@@ -164,7 +163,7 @@ public class Monitor {
         }
     }
 
-    
+    //LIBERACIÓN FINALIZACIÓN
     public void desbloquear() {
         finS.release(1);
     }
@@ -176,7 +175,7 @@ public class Monitor {
         }
     }
 
-    
+    //GETTERS Y SETTERS
     public int getNUM_ASCENSORES() {
         return NUM_ASCENSORES;
     }
