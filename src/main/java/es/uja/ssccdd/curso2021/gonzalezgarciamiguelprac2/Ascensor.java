@@ -28,14 +28,14 @@ import java.util.concurrent.TimeUnit;
  */
 public class Ascensor implements Runnable {
 
-    
+    //VARIABLES NECESARIAS
     private int id;
     private int direccion;
     private int planta;
     private ArrayList<Persona> personas;
     private Monitor mon;
 
-    public Ascensor(Monitor m, int idd) {
+    public Ascensor(Monitor m, int idd) { //INICIALIZACIÓN
         id = idd;
         mon = m;
         direccion = mon.SUBIDA;
@@ -43,22 +43,22 @@ public class Ascensor implements Runnable {
         personas = new ArrayList<Persona>();
     }
 
-    public boolean addPersona(Persona p) {
+    public boolean addPersona(Persona p) { //AÑADIR PERSONA AL ASCENSOR
         personas.add(p);
         return true;
     }
 
-    public Persona getPersona(int n) {
+    public Persona getPersona(int n) { //EXTRAER PERSONA DE LA LISTA
         return personas.get(n);
     }
 
-    public void removePersona(int n) {
+    public void removePersona(int n) { //ELIMINAR PERSONA DE LA LISTA
         System.out.println("Persona " + personas.get(n).getID() + " se ha bajado del ascensor  " + id + " en la planta " + personas.get(n).getPlantaOrigen());
         personas.get(n).setAscensor(-1);
         personas.remove(n);
     }
 
-    private int avanzar() {
+    private int avanzar() { //METODO MOVIMIENTO ; SUBIDA Y BAJADA Y SI LLEGA AL ULTIMO O PRIMER PISO CAMBIO DE DIRECCIÓN
         if (planta == mon.NUM_PLANTAS) {
             direccion = 0;
         } else if (planta == mon.BAJO) {
@@ -72,11 +72,11 @@ public class Ascensor implements Runnable {
         return planta;
     }
 
-    private void esperaPlanta() throws InterruptedException {
+    private void esperaPlanta() throws InterruptedException {//SIMULACIÓN ESPERA
         TimeUnit.SECONDS.sleep(aleatorio(4, 6));
     }
 
-    private int aleatorio(int a, int b) {
+    private int aleatorio(int a, int b) {//GENERADOR DE NUMERO ALEATORIO DENTRO DE UN RANGO
         return (int) Math.floor(Math.random() * (b - a + 1) + a);
     }
 
@@ -92,20 +92,20 @@ public class Ascensor implements Runnable {
 
     @Override
     public void run() {
-        mon.addAscensor(this);
+        mon.addAscensor(this); //SE AÑADE EL ASCENSOR A LA LISTA DE ASCENSORES DEL MONITOR
         boolean ejecucion = true;
         while (ejecucion) {
             try {
-                mon.esperaPlanta(this);
-                int b = mon.personasABajar(this);
+                mon.esperaPlanta(this);//ESPERA EN PLANTA HASTA QUE SE SUBAN LAS PERSONAS
+                int b = mon.personasABajar(this);//NUMERO DE PERSONAS QUE QUIEREN BAJARSE
                 if (b > 0) {
-                    mon.bajarPersonas(this);
+                    mon.bajarPersonas(this);//DESBLOQUEAMOS SEMAFORO BAJADA(PERSONA)
                 }
-                mon.entradaPersonas(id);
-                esperaPlanta();
-                impresionPersonas();
+                mon.entradaPersonas(id);//DESBLOQUEAMOS  N VECES EL SEMAFORO PARA LA ENTRADA DE PERSONAS // N->NUMERO DE PERSONAS QUE DESEAN ENTRAR (CONTROLADO CON UN MAXIMO)
+                esperaPlanta();//SIMULACIÓN ESPERA CIERRE DE PUERTAS
+                impresionPersonas();//IMPRESIÓN ACTUAL SEMAFOROS
                 System.out.println("--------------------------------------------------------------------------------------------");
-                avanzar();
+                avanzar();//SIGUIENTE PLANTA
             } catch (InterruptedException ex) {
                 System.out.println("Paramos el ascensor  " + id);
                 ejecucion = false;
@@ -113,7 +113,7 @@ public class Ascensor implements Runnable {
         }
     }
 
-    
+    //GETTERS Y SETTERS A VARIABLES PRIVADAS
     public int personas() {
         return personas.size();
     }
